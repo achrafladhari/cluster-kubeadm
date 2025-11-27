@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo kubeadm init --config=kubeadm.config
+sudo kubeadm init --config=../kubeadm.config
 
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
