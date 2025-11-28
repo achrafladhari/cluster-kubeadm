@@ -1,0 +1,99 @@
+---
+- name: Initialize Kubernetes Control Plane
+  hosts: masters
+  become: yes
+
+  vars:
+    kubernetes_version: "v1.34.2"
+    pod_network_cidr: "10.244.0.0/16"
+    service_cidr: "10.96.0.0/12"
+    service_dns_domain: "cluster.local"
+    load_balancer_ip: "10.0.0.10"   # Replace or override in inventory
+    node_name: "master-1"
+    calico_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml"
+
+  tasks:
+
+    - name: Check if cluster is already initialized
+      stat:
+        path: /etc/kubernetes/admin.conf
+      register: kubeadm_init_done
+
+    - name: Initialize Kubernetes control plane
+      command: >
+        kubeadm init
+        --apiserver-advertise-address={{ load_balancer_ip }}
+        --apiserver-bind-port=6443
+        --node-name={{ node_name }}
+        --control-plane-endpoint={{ load_balancer_ip }}:6443
+        --kubernetes-version={{ kubernetes_version }}
+        --pod-network-cidr={{ pod_network_cidr }}
+        --service-cidr={{ service_cidr }}
+        --service-dns-domain={{ service_dns_domain }}
+        --upload-certs
+      when: not kubeadm_init_done.stat.exists
+      register: kubeadm_output
+
+    - name: Show kubeadm init output
+      debug:
+        var: kubeadm_output.stdout_lines
+      when: kubeadm_output is defined
+
+    - name: Create .kube directory for root
+      file:
+        path: /root/.kube
+        state: directory
+        mode: '0700'
+
+    - name: Copy admin.conf to root kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+        remote_src: yes
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Set kubeconfig for ansible user
+      become: yes
+      become_user: "{{ ansible_user | default('vagrant') }}"
+      file:
+        path: ~/.kube
+        state: directory
+        mode: '0700'
+
+    - name: Copy kubeconfig to ansible user
+      become: yes
+      command: sudo cp /etc/kubernetes/admin.conf ~/.kube/config
+      args:
+        creates: "~/.kube/config"
+      become_user: "{{ ansible_user | default('vagrant') }}"
+
+    - name: Fix permissions for kubeconfig
+      file:
+        path: "/home/{{ ansible_user | default('vagrant') }}/.kube/config"
+        owner: "{{ ansible_user | default('vagrant') }}"
+        group: "{{ ansible_user | default('vagrant') }}"
+        mode: '0600'
+      when: ansible_user != 'root'
+
+    # ---------------------------------------------------------------------
+    # Install Calico CNI
+    # ---------------------------------------------------------------------
+
+    - name: Check if Calico is already installed
+      command: kubectl get daemonset calico-node -n kube-system
+      register: calico_check
+      ignore_errors: yes
+
+    - name: Install Calico CNI
+      command: kubectl apply -f {{ calico_manifest_url }}
+      when: calico_check.rc != 0
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
+
+    - name: Wait for Calico nodes to be Ready
+      command: kubectl rollout status daemonset/calico-node -n kube-system --timeout=180s
+      when: calico_check.rc != 0
+      environment:
+        KUBECONFIG: "/etc/kubernetes/admin.conf"

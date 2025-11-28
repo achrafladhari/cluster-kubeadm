@@ -14,8 +14,8 @@ Vagrant.configure("2") do |config|
         vb.memory = 2048
         vb.cpus = 2
     end
-    master.vm.provision "shell", path: "./scripts/common.sh"
-    master.vm.provision "shell", path: "./scripts/main-master.sh"
+    # master.vm.provision "shell", path: "./scripts/common.sh"
+    # master.vm.provision "shell", path: "./scripts/main-master.sh"
 
   end
 
@@ -29,7 +29,7 @@ Vagrant.configure("2") do |config|
         vb.memory = 2048
         vb.cpus = 1
     end
-    node.vm.provision "shell", path: "./scripts/common.sh"
+    # node.vm.provision "shell", path: "./scripts/common.sh"
   end
   
   end
