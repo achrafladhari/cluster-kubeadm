@@ -1,4 +1,4 @@
 .vagrant/
 add_header.sh
-ansible/host.*
+ansible/*.ini
 .gitignore
