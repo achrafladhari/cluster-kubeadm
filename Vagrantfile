@@ -1,3 +1,7 @@
+# Copyright (c) 2025 Achraf BEN CHEIKH LADHARI
+# Licensed under the MIT License.
+# DO NOT REMOVE THIS LICENSE HEADER.
+
 Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
       apt-get update -y

@@ -1,4 +1,9 @@
+# Copyright (c) 2025 Achraf BEN CHEIKH LADHARI
+# Licensed under the MIT License.
+# DO NOT REMOVE THIS LICENSE HEADER.
+
 ---
+- import_playbook: ./pre-task/validate-header.yml
 - name: Bootstrap Kubernetes Node (containerd + kubeadm + kubelet + kubectl)
   hosts: all
   become: yes

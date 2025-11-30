@@ -1,0 +1,8 @@
+# Copyright (c) 2025 Achraf BEN CHEIKH LADHARI
+# Licensed under the MIT License.
+# DO NOT REMOVE THIS LICENSE HEADER.
+
+---
+- import_playbook: ansible/all-hosts-playbook.yml
+- import_playbook: ansible/master-playbook.yml
+- import_playbook: ansible/nodes-playbook.yml

@@ -1,3 +1,7 @@
+# Copyright (c) 2025 Achraf BEN CHEIKH LADHARI
+# Licensed under the MIT License.
+# DO NOT REMOVE THIS LICENSE HEADER.
+
 #!/bin/bash
 sudo kubeadm init \
   --apiserver-advertise-address=$LOAD_BALANCER \

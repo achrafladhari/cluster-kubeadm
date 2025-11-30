@@ -1,3 +1,7 @@
+# Copyright (c) 2025 Achraf BEN CHEIKH LADHARI
+# Licensed under the MIT License.
+# DO NOT REMOVE THIS LICENSE HEADER.
+
 ---
 - name: Initialize Kubernetes Control Plane
   hosts: masters
@@ -38,6 +42,37 @@
       debug:
         var: kubeadm_output.stdout_lines
       when: kubeadm_output is defined
+    - name: Extract control-plane join command
+      set_fact:
+        kubeadm_join_control_plane: >-
+          {{
+            kubeadm_output.stdout_lines
+            | select("search", "--control-plane")
+            | list
+            | join(" ")
+          }}
+    - name: Extract worker node join command
+      set_fact:
+        kubeadm_join_worker: >-
+          {{
+            kubeadm_output.stdout_lines
+            | select("search", "^kubeadm join .*")
+            | reject("search", "--control-plane")
+            | list
+            | join(" ")
+          }}
+          
+    - name: Save control-plane join command
+      copy:
+        content: "{{ kubeadm_join_control_plane }}"
+        dest: /tmp/kubeadm_join_control_plane.sh
+        mode: '0755'
+
+    - name: Save worker join command
+      copy:
+        content: "{{ kubeadm_join_worker }}"
+        dest: /tmp/kubeadm_join_worker.sh
+        mode: '0755'
 
     - name: Create .kube directory for root
       file:
@@ -92,8 +127,8 @@
       environment:
         KUBECONFIG: "/etc/kubernetes/admin.conf"
 
-    - name: Wait for Calico nodes to be Ready
-      command: kubectl rollout status daemonset/calico-node -n kube-system --timeout=180s
-      when: calico_check.rc != 0
-      environment:
-        KUBECONFIG: "/etc/kubernetes/admin.conf"
+    # - name: Wait for Calico nodes to be Ready
+    #   command: kubectl rollout status daemonset/calico-node -n kube-system --timeout=180s
+    #   when: calico_check.rc != 0
+    #   environment:
+    #     KUBECONFIG: "/etc/kubernetes/admin.conf"

@@ -1,3 +1,7 @@
+# Copyright (c) 2025 Achraf BEN CHEIKH LADHARI
+# Licensed under the MIT License.
+# DO NOT REMOVE THIS LICENSE HEADER.
+
 #!/bin/bash
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 overlay

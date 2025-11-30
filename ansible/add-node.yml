@@ -1,0 +1,32 @@
+# Copyright (c) 2025 Achraf BEN CHEIKH LADHARI
+# Licensed under the MIT License.
+# DO NOT REMOVE THIS LICENSE HEADER.
+
+---
+- import_playbook: ./pre-task/validate-header.yml
+- import_playbook: ./all-hosts-playbook.yml
+- name: Initialize Kubernetes Control Plane
+  hosts: nodes
+  become: yes
+  # vars:
+  #   kubernetes_version: "v1.34.2"
+  #   pod_network_cidr: "10.244.0.0/16"
+  #   service_cidr: "10.96.0.0/12"
+  #   service_dns_domain: "cluster.local"
+  #   load_balancer_ip: "10.0.0.10"   # Replace or override in inventory
+  #   node_name: "master-1"
+  #   calico_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml"
+  tasks:
+    - name: Read control-plane join command from master
+      slurp:
+        src: /tmp/kubeadm_join_control_plane.sh
+      delegate_to: master-primary
+      run_once: true
+      register: join_cp_command_file
+
+    - name: Decode join command
+      set_fact:
+        kubeadm_join_control_plane: "{{ join_cp_command_file.content | b64decode }}"
+
+    - name: Join node to cluster as control-plane
+      command: "{{ kubeadm_join_control_plane }}"
