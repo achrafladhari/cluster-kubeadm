@@ -1,5 +1,5 @@
-- name: Initialize Kubernetes Control Plane
-  hosts: nodes
+- name: Initialize Kubernetes Nodes
+  hosts: workers
   become: yes
 
   # vars:
@@ -15,14 +15,14 @@
 
     - name: Read control-plane join command from master
       slurp:
-        src: /tmp/kubeadm_join_control_plane.sh
+        src: /tmp/kubeadm_join_worker.sh
       delegate_to: master-primary
       run_once: true
       register: join_cp_command_file
 
     - name: Decode join command
       set_fact:
-        kubeadm_join_control_plane: "{{ join_cp_command_file.content | b64decode }}"
+        kubeadm_join_worker: "{{ join_cp_command_file.content | b64decode }}"
 
     - name: Join node to cluster as control-plane
-      command: "{{ kubeadm_join_control_plane }}"
+      command: "{{ kubeadm_join_worker }}"

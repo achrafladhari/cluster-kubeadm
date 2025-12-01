@@ -1,4 +1,3 @@
 .vagrant/
 add_header.sh
 ansible/*.ini
-.gitignore

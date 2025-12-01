@@ -8,14 +8,6 @@
 - name: Initialize Kubernetes Control Plane
   hosts: nodes
   become: yes
-  # vars:
-  #   kubernetes_version: "v1.34.2"
-  #   pod_network_cidr: "10.244.0.0/16"
-  #   service_cidr: "10.96.0.0/12"
-  #   service_dns_domain: "cluster.local"
-  #   load_balancer_ip: "10.0.0.10"   # Replace or override in inventory
-  #   node_name: "master-1"
-  #   calico_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml"
   tasks:
     - name: Read control-plane join command from master
       slurp:
